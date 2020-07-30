@@ -1,24 +1,3 @@
-<div>
-    <Static3/>
-</div>
-<div>
-    <Static3/>
-</div>
-<div>
-    <Static3/>
-</div>
-<div>
-    <Static3/>
-</div>
-<div>
-    <Static3/>
-</div>
-<div>
-    <Static3/>
-</div>
-<div>
-    <Static3/>
-</div>
-<div>
+<div class="static2">
     <Static3/>
 </div>

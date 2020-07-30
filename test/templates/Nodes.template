@@ -1,6 +1,16 @@
 <!DOCTYPE html>
+<script type="text/javascript" foo={$scope.foo} instance>
+    console.log('Toto tu je megasuperscript');
+</script>
+<style type="text/css" instance>
+    html, body
+    {
+        margin: 0;
+        padding: 0;
+    }
+</style>
 <div foo="bar" bar={await $scope.foo + '_async_' + 5} foobar>
-    <span>
+    <span {[fo*]...{fook:'janko hrasko', ...$scope}}>
         Janko Hrasko
         <foo test={await '5'}/>
         <bar/>
@@ -9,26 +19,7 @@
 <div foo="bar" bar={$scope.foo + '_not_async_' + 1} foobar>
     <span>
         Janko Hrasko
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
-        <Static/>
+        <Static foo="bar" bar={$scope.foo}/>
         <Static/>
     </span>
 </div>

@@ -2,7 +2,6 @@
 
 //https://www.javascriptstuff.com/how-whitespace-works-in-jsx/
 
-const HTML = require('./html');
 const Parser = require('@liqd-js/parser');
 const TemplateParser = new Parser( __dirname + '/template.syntax' );
 const Transpiler = require('./transpiler');
@@ -32,7 +31,7 @@ module.exports = class Template
 
         let code = transpiler.code();
 
-        console.log( code );
+        //console.log( '\n\n**** ' + filename + ' ****\n\n\n', code );
 
         return new Function( '$args', 'const [ $id, $locale, $content, $props, $scope, $_template, $$_HTML ] = $args;' + code );
     }
@@ -53,7 +52,7 @@ module.exports = class Template
     {
         let template = this.get( name );
 
-        return template([ Math.ceil( Math.random() * 1000 ), locale, content, props, scope, ( name, props, content ) => this.render( name, props, scope, locale, content ), HTML ]);
+        return template([ Math.ceil( Math.random() * 1000 ), locale, content, props, scope, ( name, props, content ) => this.render( name, props, scope, locale, content ) ]);
 
         return html;
     }

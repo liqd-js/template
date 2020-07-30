@@ -21,23 +21,12 @@ module.exports = class Transpiler
         }
     }
 
-    _async_code( code )
+    _async_render( code )
     {
         this._flush_html_source();
 
         this.#async = true;
-        /*this.#code += 
-        [
-            `$$_html.push( new Promise( async( resolve, reject ) =>`
-        ,   `{`
-        ,   `  try`
-        ,   `  {`
-        ,       ...( Array.isArray( code ) ? code : [ code ]).map( c => '    ' + c )
-        ,   `  }`
-        ,   `  catch( e ){ reject( e )}`
-        ,   `}));\n`
-        ]
-        .join('\n');*/
+        
         this.#code += 
         [
             `$$_html.push(( async() =>`
@@ -67,7 +56,7 @@ module.exports = class Transpiler
     {
         if( expression.code.includes( 'await' ))
         {
-            this._async_code( `return ${expression.code.trim()};` );
+            this._async_render( `return ${expression.code.trim()};` );
         }
         else
         {
@@ -82,31 +71,33 @@ module.exports = class Transpiler
 
     _comment(){}
 
+    _filter( filter )
+    {
+        if( !filter ){ return '' }
+        
+        let matches = { positive: [], negative: []};
+
+        for( let wildcard of filter.wildcards.trim().split( /\s*,\s*/ ))
+        {
+            matches[ wildcard.startsWith('!') ? 'negative' : 'positive' ].push( '/^' + wildcard.replace(/^!/,'').replace(/\*/g,'.*') + '$/.test( name )' );
+        }
+
+        return '.filter(([ name, value ]) => ' + ( matches.negative.length ? '!( ' + matches.negative.join(' || ') + ' )' : '' ) + ( matches.negative.length > 0 && matches.positive.length > 0 ? ' && ' : '' ) + ( matches.positive.length ? '( ' + matches.positive.join(' || ') + ' )' : '' ) + ')';
+    }
+
     _attributes( attributes )
     {
         for( let attribute of attributes )
         {
             if( attribute.hasOwnProperty( 'spread' ))
             {
-                if( attribute.filter )
-                {
-                    let matches = { positive: [], negative: []};
-
-                    for( let wildcard of attribute.filter.wildcards.trim().split( /\s*,\s*/ ))
-                    {
-                        matches[ wildcard.startsWith('!') ? 'negative' : 'positive' ].push( '/^' + wildcard.replace(/^!/,'').replace(/\*/g,'.*') + '$/.test( name )' );
-                    }
-
-                    attribute.filter = '.filter([ name, value ] => ' + ( matches.negative.length ? '!( ' + matches.negative.join(' || ') + ' )' : '' ) + ( matches.negative.length > 0 && matches.positive.length > 0 ? ' && ' : '' ) + ( matches.positive.length ? '( ' + matches.positive.join(' || ') + ' )' : '' ) + ')';
-                }
-
-                this.#html_source += `\${Object.entries( ${attribute.spread} )${attribute.filter || ''}.map([ name, value ] => ' ' + name + '="' + value + '"' ).join('')}`;
+                this.#html_source += `\${Object.entries( ${attribute.spread} )${ this._filter( attribute.filter )}.map(([ name, value ]) => ' ' + name + ( value !== undefined ? '="' + value + '"' : '' )).join('')}`;
             }
             else if( attribute.hasOwnProperty( 'expression' ))
             {
                 if( attribute.expression.code.includes( 'await' ))
                 {
-                    this._async_code(
+                    this._async_render(
                     [
                         `let v = ${attribute.expression.code};`
                     ,   `return v !== null ? ' ${attribute.name}' + ( v !== undefined ? '="' + v + '"' : '' ) : '';`
@@ -119,7 +110,7 @@ module.exports = class Transpiler
             }
             else
             {
-                this.#html_source += ' ' + attribute.name + ( attribute.hasOwnProperty( 'value' ) ? '"' + attribute.value + '"' : '' );
+                this.#html_source += ' ' + attribute.name + ( attribute.hasOwnProperty( 'value' ) ? '="' + attribute.value + '"' : '' );
             }
         }
     }
@@ -136,6 +127,38 @@ module.exports = class Transpiler
     _htmlcomment( comment )
     {
         this.#html_source += `<!--${comment}-->`;
+    }
+
+    _style( style )
+    {
+        if( style.attributes.find( a => a.name === 'instance' ))
+        {
+            this.#html_source += `<style`;
+
+            this._attributes( style.attributes.filter( a => a.name !== 'instance' ));
+
+            this.#html_source += `>${style.source}</style>`;
+        }
+        else
+        {
+            console.log( style );
+        }
+    }
+
+    _script( script )
+    {
+        if( script.attributes.find( a => a.name === 'instance' ))
+        {
+            this.#html_source += `<script`;
+
+            this._attributes( script.attributes.filter( a => a.name !== 'instance' ));
+
+            this.#html_source += `>${script.source}</script>`;
+        }
+        else
+        {
+            console.log( script );
+        }
     }
 
     _tag( tag )
@@ -162,7 +185,39 @@ module.exports = class Transpiler
     {
         this._flush_html_source();
 
-        this.#code += `$$_html.push( $_template( "${template.name}", {}, "" ));\n`;
+        this.#async = true; // POSSIBLE ASYNC
+
+        if( template.props.find( p => p.expression && p.expression.code.includes( 'await' )))
+        {
+            // TODO - tu sme skoncili, treba spravit async kod pre vytvorenie props objektu a nasledne zavolat render
+
+            this._async_render(
+            [
+                `let v = ${attribute.expression.code};`
+            ,   `return v !== null ? ' ${attribute.name}' + ( v !== undefined ? '="' + v + '"' : '' ) : '';`
+            ]);
+        }
+        else
+        {
+            let props = `{${template.props.map( prop => 
+            {
+                if( prop.hasOwnProperty( 'spread' ))
+                {
+                    return `...\${Object.entries( ${prop.spread} )${ this._filter( prop.filter )}.reduce(( props, [ name, value ]) => ( props[name] = value, props ), {})}`;
+                }
+                else if( prop.hasOwnProperty( 'expression' ))
+                {
+                    return `${JSON.stringify( prop.name )} : ${ prop.expression.code }`;
+                }
+                else
+                {
+                    return `${JSON.stringify( prop.name )} : ${ prop.hasOwnProperty( 'value' ) ? JSON.stringify( prop.value ) : 'undefined' }`;
+                }
+            })
+            .join(',')}}`;
+
+            this.#code += `$$_html.push( $_template( "${template.name}", ${props}, "" ));\n`;
+        }
     }
 
     code()

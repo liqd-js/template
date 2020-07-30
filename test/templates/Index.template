@@ -1,0 +1,12 @@
+<div>
+    Hello world
+    for( let i = 0; i < 3; ++i )
+    {
+        <Product name="hello" onclick="alert('test')" data-test="dassad" data-testik="dasdas" data-robo="frajer" onmousedown="mousedown">
+            Produktik
+        </Product>
+        <Product name={$id+'_hell0'}>
+            Toto uz je riadna pecka2
+        </Product>
+    }   
+</div>

@@ -1,0 +1,94 @@
+:ws
+    =/[\s\n]+/
+
+:string
+	=/"(?<string>([^\\"\r\n]|\\[^\r\n])*?)"/
+	=/'(?<string>([^\\'\r\n]|\\[^\r\n])*?)'/
+
+	$ => Util.unescape( $.string )
+
+:expression_source
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]*>)|>))|[^{}"'`<\r\n]+)+/
+    "{" blocks=...:expression_source "}"
+
+    $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
+
+:expression
+    escaped=?"#" "{" source=...:expression_source "}"
+    
+    $ => ({ escaped: Boolean( $.escaped ), code: $.source.join('') })
+
+:attribute
+	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" =:expression
+	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" value=:string
+	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/
+    "{" filter=?/\[(?<wildcards>[^\]]+)\]/ "..." spread=/[a-zA-Z_$][a-zA-Z0-9_$]*/ "}"
+
+:declaration
+    "<!" name=/[a-zA-Z][a-zA-Z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws ">"
+
+:htmlcomment
+    =/<!\-\-(?<comment>(\n|.)*?)\-\->/
+
+    $ => $.comment
+
+:tag
+    "<" name=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $name ">"
+    "<" name=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws "/>"
+
+:template
+    "<" name=/[A-Z][a-zA-Z0-9_.-]*/ ?:ws props=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $name ">"
+    "<" name=/[A-Z][a-zA-Z0-9_.-]*/ ?:ws props=?...[:ws]:attribute ?:ws "/>"
+
+:text
+    =/[^<{}\r\n]+?(?=[\s]*([<{}\r\n]|#\{|\/[/*]))/
+
+:parenthesis
+    source=/("(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|[^()"'`]+)+/
+    "(" blocks=?...:parenthesis ")"
+
+    $ => $.hasOwnProperty( 'source' ) ? $.source : '( ' + $.blocks.join('') + ' )'
+
+:condition
+    parentheses=...:parenthesis
+
+    $ => $.parentheses.join('')
+
+
+:javascript_source
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]*\/?>)|>))|[^{}"'`<]+)+/
+    source=:html
+    source=:template
+    "{" blocks=?...:javascript_source "}"
+
+    $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
+
+:if
+    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}" ?:ws "else" ?:ws else_if=:if
+    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}" ?:ws "else" ?:ws "{" else=...:javascript_source "}"
+    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}"
+
+:for
+    "for" ?:ws "(" =:condition ")" ?:ws "{" for=...:javascript_source "}"
+
+:javascript
+    =:if
+    =:for
+
+:comment
+    "//" /[^\n]*/
+    "/*" /[\s\S]*?\*\//
+
+:node
+    whitespace=:ws
+    =:declaration
+    =:tag
+    =:template
+    =:javascript
+    =:expression
+    =:htmlcomment
+    =:comment
+    =:text
+
+:main
+	nodes=...:node

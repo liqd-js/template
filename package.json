@@ -1,0 +1,34 @@
+{
+  "name": "@liqd-js/template",
+  "description": "Templating engine",
+  "version": "0.0.1",
+  "author": "radixxko",
+  "license": "MIT",
+  "main": "lib/template.js",
+  "homepage": "https://liqd-js.com/lib/template",
+  "files": [
+    "lib/"
+  ],
+  "scripts": {
+    "test": "nyc mocha",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/liqd-js/template.git"
+  },
+  "keywords": [
+    "template",
+    "engine",
+    "liqd-js",
+    "liqd"
+  ],
+  "devDependencies": {
+    "coveralls": "^3.0.4",
+    "mocha": "^5.0.4",
+    "nyc": "^14.1.1"
+  },
+  "dependencies": {
+    "@liqd-js/parser": "0.0.5"
+  }
+}

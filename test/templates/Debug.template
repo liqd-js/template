@@ -1,0 +1,6 @@
+for( let prop in $props )
+{
+    <div>
+        {prop} = {$props[prop]}
+    </div>
+}

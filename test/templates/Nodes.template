@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<div foo="bar" bar={await $scope.foo + '_async_' + 5} foobar>
+    <span>
+        Janko Hrasko
+        <foo test={await '5'}/>
+        <bar/>
+    </span>
+</div>
+<div foo="bar" bar={$scope.foo + '_not_async_' + 1} foobar>
+    <span>
+        Janko Hrasko
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+        <Static/>
+    </span>
+</div>
+<!--Janko 
+    hrasko-->
+<div foo="bar" bar={await(async( p ) => { return $scope.foo + '_func_' + 1 + '_' + p })($scope.foo)} foobar={$scope.test}>
+    <span>
+        <span> A </span>  B <span>C {'prd'} </span>
+        /**/Janko /*Hrasko
+        aj*/ marienka
+        { await(async(idecko) => $scope.foo + '_' + 42342 + '_' + idecko)($id) }
+        //<div>Comment</div>
+    </span>
+</div>

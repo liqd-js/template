@@ -1,0 +1,6 @@
+<div class="Static async">
+    { await new Promise( r => setTimeout( () => r('test'), 20 )) }
+    Marienka
+    toto //nebude
+    { await new Promise( r => setTimeout( () => r('test2'), 10 )) }
+</div>

@@ -1,0 +1,3 @@
+<div class="content" id={$id}>
+    Obsah {$props['data-i']}
+</div>

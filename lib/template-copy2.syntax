@@ -1,0 +1,101 @@
+:ws
+    =/[\s\n]+/
+
+:string
+	=/"(?<string>([^\\"\r\n]|\\[^\r\n])*?)"/
+	=/'(?<string>([^\\'\r\n]|\\[^\r\n])*?)'/
+
+	$ => util.unescape( $.string )
+
+:alphanumeric
+    =/[a-zA-Z_$][a-zA-Z0-9_:.-]*/
+
+:script
+    "<script" ?:ws attributes=?...[:ws]:attribute ?:ws ">" source=/(.|\n)*?(?=<\/script>)/ "</script>"
+
+    script =>
+    {
+        return { source: script.source }
+    }
+
+:style
+    "<style" ?:ws attributes=?...[:ws]:attribute ?:ws ">" source=/(.|\n)*?(?=<\/style>)/ "</style>"
+
+    style =>
+    {
+        return { source: style.source }
+    }
+
+:expression
+	"{" =/[^{}\r\n]+/ "}"
+
+:attribute
+	attribute=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" =:expression
+	attribute=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" value=:string
+	attribute=/[a-zA-Z_][a-zA-Z0-9_:-]*/
+
+:whitespacenode
+    =:ws
+
+    ws => ({ type: 'whitespace', ws })
+
+:javascript
+
+
+:textnode
+	=/[^<{}\r\n]+?(?=[\s]*[<\r\n])/
+
+    text => ({ type: 'text', text })
+
+:if
+    "if" ?:ws "(" condition=/[^()]+/ ")" ?:ws "{" /[^}]+/ "}"
+
+:htmlnode
+    "<" tag=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $tag ">"
+    "<" tag=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws "/>"
+
+    node =>
+    {
+        let render = `__HTML += \`<${ node.tag }${ node.attributes.map( a => ' ' + a.attribute + ( a.value ? '="' + util.htmlentities( a.value ) + '"' : '' )).join('')}${ !node.hasOwnProperty('nodes') ? '/' : '' }>\`;`;
+
+        if( node.hasOwnProperty('nodes') )
+        {
+            for( let child of node.nodes )
+            {
+                if( child.hasOwnProperty( 'node' ))
+                {
+                    render += '\n' + child.node.render;
+                }
+                else if( child.hasOwnProperty( 'text' ) )
+                {
+                    render += `\n__HTML += '${ util.htmlentities( child.text )}';`;
+                }
+                else if( child.hasOwnProperty( 'expression' ) )
+                {
+                    render += `\n__HTML += '${ util.htmlentities( child.expression )}';`;
+                }
+                else if( child.hasOwnProperty( 'whitespace' ) )
+                {
+                    render += `\n__HTML += \`${ child.whitespace }\`;`;
+                }
+            }
+
+            render += `\n__HTML += \`</${ node.tag }>\`;`;
+        }
+
+        //return { render };
+
+        return node;
+    }
+
+:node
+    whitespace=/[\s\n]+/
+    =:expression
+	=:script
+    =:style
+	node=:htmlnode
+    text=/[^<{}\r\n]+?(?=[\s]*[<{}\r\n])/
+    =:javascript
+
+:main
+	nodes=...:node

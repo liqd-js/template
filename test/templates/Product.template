@@ -1,0 +1,5 @@
+<div onclick={$props.onclick} {[data-*,on*,!onclick]...$props}>
+    <h1>{$props.name}</h1>
+    {$content}
+    <Debug {[data-*]...$props}/>
+</div>

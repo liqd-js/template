@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<div foo="bar" bar={await $scope.foo + '_async_' + 5} foobar>
+    <span>
+        Janko Hrasko
+        if( Math.random() < 0.5 )
+        {
+            <foo test={await '5'}/>
+        }
+        else
+        {
+            <bar/>
+        }
+    </span>
+</div>
+<div foo="bar" bar={$scope.foo + '_not_async_' + 1} foobar>
+    <span>
+        Janko Hrasko
+        <Static/>
+        for( let i = 0; i < 2; ++i )
+        {
+            <Static/>
+        }
+    </span>
+</div>
+<!--Janko 
+    hrasko-->
+<div foo="bar" bar={await(async( p ) => { return $scope.foo + '_func_' + 1 + '_' + p })($scope.foo)} foobar={$scope.test}>
+    <span>
+        /**/Janko /*Hrasko
+        aj*/ marienka
+        { await(async(idecko) => $scope.foo + '_' + 42342 + '_' + idecko)($id) // Foo }
+        //<div>Comment</div>
+    </span>
+</div>

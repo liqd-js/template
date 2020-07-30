@@ -1,0 +1,18 @@
+<div id={$id} class={'janko ' + $id} foo="bar">{$id}</div>
+for( let item of $props.items )
+{
+    if( $id > 10 )
+    {
+        <span id={$id}>Super {$id}</span>
+    }
+    <Foo bar="foo" janko>
+        if( item.name === 'prvy' )
+        {
+            <div>{ item.name }</div>
+        }
+        else
+        {
+            <div>Daka glupocina</div>
+        }
+    </Foo>
+}

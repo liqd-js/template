@@ -1,0 +1,66 @@
+<script type="text/javascript" async defer>
+    bla bla
+</script>
+<style>
+    html
+</style>
+<d foo="bar">
+    <#head>
+        head #{$id} reference
+    </#head>
+    <#div id="foo">
+        div
+        with 
+        { Array.from([ $id + 25, 7 ]).map( i => { return i * 5; }).reduce(( s, i ) => { return ( s += i )}, -1000 )}
+        reference
+    </#div>
+    <afoo>
+        acko
+    </afoo>
+    <b>
+        becko
+        {
+            let x = '31231';
+        }
+        { $content }
+    </b>
+    <c foo={ $props.a ? "b" : "c" } bar="bar">
+        cecko
+        if( $id || ( $id && ( $id ) ) )
+        {
+            let x = '0';
+
+            if( $id )
+            {
+                x = 2;
+
+                x += x * 3;
+                for( let i = 0; i < x; ++i )
+                {
+                    
+                    <>
+                        <span class="x">{x}</span>
+                        <span class="x">{2*x}</span>
+                    </>
+                }
+            }
+            else if( $id )
+            {
+                x = 3;
+                <div>foo</div>
+            }
+        }
+        else if( $id )
+        {
+            let c = 'sa';
+            <span>{c}</span>
+        }
+        else
+        {
+            let c = 's';
+
+            <span>{c}</span>
+        }
+    </c>
+    <e foo="bar"/>
+</d>

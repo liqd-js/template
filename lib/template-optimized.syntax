@@ -1,0 +1,182 @@
+:ws
+    =/[\s\n]+/
+
+:string
+	=/"(?<string>([^\\"\r\n]|\\[^\r\n])*?)"/
+	=/'(?<string>([^\\'\r\n]|\\[^\r\n])*?)'/
+
+	$ => util.unescape( $.string )
+
+:space
+    =:ws
+
+    $ => `$_html( ${ JSON.stringify( $.ws )});`
+
+:expression_source
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]*>)|>))|[^{}"'`<\r\n]+)+/
+    "{" blocks=...:expression_source "}"
+
+    $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
+
+:expression
+    escaped=?"#" "{" expression=...:expression_source "}"
+    
+    $ => ({ escaped: Boolean( $.escaped ), source: $.expression.join('') })
+
+
+:attribute
+	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" =:expression
+	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" value=:string
+	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/
+    "{" filter=?/\[(?<wildcards>[^\]]+)\]/ "..." spread=/[a-zA-Z_$][a-zA-Z0-9_$]*/ "}"
+
+    $ =>
+    {
+        if( $.filter )
+        {
+            let matches = { positive: [], negative: []};
+
+            $.filter.wildcards.trim().split(/\s*,\s*/).forEach( w => matches[ w.startsWith('!') ? 'negative' : 'positive' ].push( '/^' + w.replace(/^!/,'').replace(/\*/g,'.*') + '$/.test( name )' ));
+            
+            $.filter = '.filter( name => ' + ( matches.negative.length ? '!( ' + matches.negative.join(' || ') + ' )' : '' ) + ( matches.negative.length > 0 && matches.positive.length > 0 ? ' && ' : '' ) + ( matches.negative.length ? '( ' + matches.positive.join(' || ') + ' )' : '' ) + ')';
+        }
+        else if( $.hasOwnProperty('filter') )
+        {
+            $.filter = '';
+        }
+
+        return $;
+    }
+
+:script
+    "<script" ?:ws attributes=?...[:ws]:attribute ?:ws ">" source=/(.|\n)*?(?=<\/script>)/ "</script>"
+
+    $ => ''
+
+:style
+    "<style" ?:ws attributes=?...[:ws]:attribute ?:ws ">" source=/(.|\n)*?(?=<\/style>)/ "</style>"
+
+    $ => ''
+
+:fragment
+    "<>" nodes=?...:node "</>"
+
+    $ => $.nodes.map( n => n || '' ).join('\n')
+
+:html
+    "<" tag=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $tag ">"
+    "<" tag=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws "/>"
+
+    html =>
+    {
+        let source = `$_html( \`<${ html.tag }${ html.attributes.map( a => 
+            a.hasOwnProperty('spread')
+                ? `\${(()=>{ let p = ${a.spread}, attr = ''; for( let name of Object.keys( p )${a.filter}){ attr += ' ' + name + '=' + JSON.stringify( p[name].toString() ) } return attr; })()}` 
+                : a.hasOwnProperty('expression') 
+                    ? `\${(()=>{ let v = ${a.expression.source}; return v !== undefined ? ' ${a.name}' + ( v !== null ? '=' + JSON.stringify(v.toString()) : '' ) : '' })()}`
+                    : ( a.hasOwnProperty('value')
+                        ? ' ' + a.name + '=' + JSON.stringify( a.value )
+                        : ' ' + a.name
+                    )
+        ).join('')}>\`);`;
+
+        if( html.hasOwnProperty('nodes') )
+        {
+            for( let child of html.nodes )
+            {
+                child && ( source += '\n' + child );
+            }
+
+            source += `\n$_html( \`</${ html.tag }>\` );`;
+        }
+
+        return source;
+    }
+
+:template
+    "<" name=/[A-Z][a-zA-Z0-9_.-]*/ ?:ws props=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $name ">"
+    "<" name=/[A-Z][a-zA-Z0-9_.-]*/ ?:ws props=?...[:ws]:attribute ?:ws "/>"
+
+    template =>
+    {
+        let child_source = '';
+        if( template.hasOwnProperty('nodes') )
+        {
+            for( let child of template.nodes )
+            {
+                child && ( child_source += '\n' + child );
+            }
+        }
+
+        let source =`$_template( ${ JSON.stringify( template.name )}, {${ template.props.map( a => JSON.stringify( a.name ) + ':' + ( a.hasOwnProperty('value') ? JSON.stringify( a.value ) : ( a.hasOwnProperty('expression') ? a.expression.source.trim() : 'undefined' )))}}, (()=>{ let $__html = ''; const $_html = ( data ) => $__html += data; ${ child_source }\n return $__html;})());`;
+
+        return source;
+    }
+
+:text
+    =/[^<{}\r\n]+?(?=[\s]*([<{}\r\n]|#\{))/
+
+    $ => `$_html( ${ JSON.stringify( $ )});`;
+
+:parenthesis
+    source=/("(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|[^()"'`]+)+/
+    "(" blocks=...:parenthesis ")"
+
+    $ => $.hasOwnProperty( 'source' ) ? $.source : '( ' + $.blocks.join('') + ' )'
+
+:condition
+    parentheses=...:parenthesis
+
+    $ => $.parentheses.join('')
+
+
+:javascript_source
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]*>)|>))|[^{}"'`<]+)+/
+    source=:html
+    source=:fragment
+    source=:template
+    "{" blocks=...:javascript_source "}"
+
+    $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
+
+:if
+    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}" ?:ws "else" ?:ws else_if=:if
+    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}" ?:ws "else" ?:ws "{" else=...:javascript_source "}"
+    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}"
+
+    $ => 'if( ' + $.condition + ' )\n{\n' + $.if.join('') + '\n}\n' + ( $.hasOwnProperty( 'else_if' ) ? 'else ' + $.else_if : ( $.hasOwnProperty( 'else' ) ? 'else\n{\n' + $.else.join('') + '\n}\n' : '' ));
+
+:for
+    "for" ?:ws "(" =:condition ")" ?:ws "{" for=...:javascript_source "}"
+
+    $ => 'for( ' + $.condition + ' )\n{\n' + $.for.join('') + '\n}\n'
+
+:block
+    "{" /\s*\n[\s\n]*/ blocks=...:javascript_source "}"
+
+    $ => '\n{\n' + $.blocks.join('') + '\n}\n'
+
+:javascript
+    source=:if 
+    source=:for
+    source=:block
+
+    $ => $.source
+
+:node
+    source=:space
+    expression=:expression
+	source=:script
+    source=:style
+	source=:html
+    source=:fragment
+    source=:template
+    source=:javascript
+    source=:text
+
+    $ => $.expression ? `$_html( ${ $.expression.source });` : $.source;
+
+:main
+	nodes=...:node
+
+    $ => $.nodes.join('');

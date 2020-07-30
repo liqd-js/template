@@ -1,0 +1,15 @@
+<head>
+    <meta charset="utf-8"/>
+    <meta charset="utf-8"/>
+    <meta charset="utf-8"/>
+    <meta charset="utf-8"/>
+</head>
+<div class="Static async" foo={$scope.foo}>
+    Marienka
+    toto //nebude
+    { await 'blbost' }
+    <Static2/>
+    <Static2/>
+    <Static2/>
+    <Static2/>
+</div>

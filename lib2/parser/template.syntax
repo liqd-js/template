@@ -13,6 +13,9 @@
 
     $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
 
+:content
+    "{" ?:ws "$content" ?:ws "}"
+
 :expression
     escaped=?"#" "{" source=...:expression_source "}"
     
@@ -62,15 +65,13 @@
 
 
 :javascript_source
-    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]*\/?>)|>))|[^{}"'`<]+)+/
-    source=:html
-    source=:template
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]+\{|[\s\n]*\/?>)|>))|[^{}"'`<]+)+/
+    =:tag
+    =:template
     "{" blocks=?...:javascript_source "}"
 
-    $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
-
 :if
-    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}" ?:ws "else" ?:ws else_if=:if
+    "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}" ?:ws "else" ?:ws else=:if
     "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}" ?:ws "else" ?:ws "{" else=...:javascript_source "}"
     "if" ?:ws "(" =:condition ")" ?:ws "{" if=...:javascript_source "}"
 
@@ -92,6 +93,7 @@
     =:script
     =:tag
     =:template
+    =:content
     =:javascript
     =:expression
     =:htmlcomment

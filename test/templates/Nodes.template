@@ -15,13 +15,36 @@
         <foo test={await '5'}/>
         <bar/>
     </span>
+    if( false && true && (() => { return 1 + ( 2 * 3 )})() )
+    {
+        <div>Foo ** TU MAM RIADNE SALENU VEC **</div>
+    }
+    else if( true )
+    {
+        <div>Bar *** SALENAKY!!! ***</div>
+    }
+    //for( let i = 0; i < 5; ++i )
+    for( let i = 0; i < ( await new Promise( resolve => setTimeout(() => resolve( 5 ), 5 ))); ++i )
+    {
+        <div>*** Forik ({i}) ***</div>
+    }
 </div>
 <div foo="bar" bar={$scope.foo + '_not_async_' + 1} foobar>
     <span>
+        <Debug {...$scope} {...$props}/>
         Janko Hrasko
         <Static foo="bar" bar={await $scope.foo} {[fo*]...{fook:'janko hrasko', ...$scope}}/>
+        *** HLAVNE *** {$id}
         <Static>
             Foo Bar
+            *** CONTENT *** {$id}
+        </Static>
+        <Static>
+            Foo Bar 2
+            *** CONTENT2 *** {$id}
+            <Static3>
+                *** TUTAJ SME ***
+            </Static3>
         </Static>
     </span>
 </div>

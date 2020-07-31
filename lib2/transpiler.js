@@ -15,7 +15,9 @@ module.exports = class Transpiler
         {
             let type = Object.keys( node )[0];
 
-            //console.log({ type });
+            if( type === 'source' ){ continue }
+
+            console.log({ type });
 
             this['_'+type]( node[type] );
         }
@@ -23,9 +25,7 @@ module.exports = class Transpiler
 
     _async_render( code )
     {
-        this._flush_html_source();
-
-        this.#async = true;
+        this._flush_html_source( true );
         
         this.#code += 
         [
@@ -37,7 +37,27 @@ module.exports = class Transpiler
         .join('\n');
     }
 
-    _flush_html_source()
+    _async_code( prefix, blocks, suffix = [] )
+    {
+        this._flush_html_source( true );
+        
+        this.#code += 
+        [
+            `$$_html.push(( async() =>`
+        ,   `{`
+        ,       new Transpiler({ nodes: 
+                [
+                    ...prefix.map( c => ({ transpiled: '    ' + c + '\n' })),
+                    ...blocks,
+                    ...suffix.map( c => ({ transpiled: '    ' + c + '\n' }))
+                ]})
+                .code()
+        ,   `})());\n`
+        ]
+        .join('\n');
+    }
+
+    _flush_html_source( _async = false )
     {
         if( this.#html_source )
         {
@@ -45,6 +65,15 @@ module.exports = class Transpiler
 
             this.#html_source = '';
         }
+
+        _async && ( this.#async = true );
+    }
+
+    _transpiled( transpiled )
+    {
+        this._flush_html_source();
+
+        this.#code += transpiled;
     }
 
     _whitespace( whitespace )
@@ -183,13 +212,16 @@ module.exports = class Transpiler
 
     _template( template )
     {
-        this._flush_html_source();
+        this._flush_html_source( true ); // POSSIBLE ASYNC
 
-        this.#async = true; // POSSIBLE ASYNC
+        let content = `() => ''`;
 
-        console.log({ template })
+        if( template.content && template.content.length )
+        {
+            let content_code = new Transpiler({ nodes: template.content }).code();
 
-        let content;
+            content = `() => { ${content_code} }`;
+        }
 
         // TODO poriesit template content getter
 
@@ -208,14 +240,9 @@ module.exports = class Transpiler
                     }
                     else if( prop.hasOwnProperty( 'expression' ))
                     {
-                        if( prop.expression.code.includes( 'await' ))
-                        {
-                            return `    (async() => { return ${prop.expression.code}})(),`
-                        }
-                        else
-                        {
-                            return `    ${ prop.expression.code },`;
-                        }
+                        return prop.expression.code.includes( 'await' )
+                            ? `    (async() => { return ${prop.expression.code}})(),`
+                            : `    ${ prop.expression.code },`;
                     }
                     else
                     {
@@ -226,17 +253,12 @@ module.exports = class Transpiler
             ,   `let props = {`
             ,   ...template.props.map(( prop, i ) =>  
                 {
-                    if( prop.hasOwnProperty( 'spread' ))
-                    {
-                        return `    ...values[${i}],`
-                    }
-                    else
-                    {
-                        return `    ${JSON.stringify( prop.name )} : values[${i}],`
-                    }
+                    return prop.hasOwnProperty( 'spread' )
+                        ? `    ...values[${i}],`
+                        : `    ${JSON.stringify( prop.name )} : values[${i}],`;
                 })
             ,   `};`
-            ,   `return $_template( "${template.name}", props, "" );`
+            ,   `return $_template( "${template.name}", props, ${content} );`
             ]);
         }
         else
@@ -245,21 +267,116 @@ module.exports = class Transpiler
             {
                 if( prop.hasOwnProperty( 'spread' ))
                 {
-                    return `...\${Object.entries( ${prop.spread} )${ this._filter( prop.filter )}.reduce(( props, [ name, value ]) => ( props[name] = value, props ), {})}`;
-                }
-                else if( prop.hasOwnProperty( 'expression' ))
-                {
-                    return `${JSON.stringify( prop.name )} : ${ prop.expression.code }`;
+                    return `...Object.entries( ${prop.spread} )${ this._filter( prop.filter )}.reduce(( props, [ name, value ]) => ( props[name] = value, props ), {})`;
                 }
                 else
                 {
-                    return `${JSON.stringify( prop.name )} : ${ prop.hasOwnProperty( 'value' ) ? JSON.stringify( prop.value ) : 'undefined' }`;
+                    return prop.hasOwnProperty( 'expression' )
+                        ? `${JSON.stringify( prop.name )} : ${ prop.expression.code }`
+                        : `${JSON.stringify( prop.name )} : ${ prop.hasOwnProperty( 'value' ) ? JSON.stringify( prop.value ) : 'undefined' }`;
                 }
             })
             .join(',')}}`;
 
-            this.#code += `$$_html.push( $_template( "${template.name}", ${props}, "" ));\n`;
+            this.#code += `$$_html.push( $_template( "${template.name}", ${props}, ${content} ));\n`;
         }
+    }
+
+    _content()
+    {
+        this._flush_html_source( true ); // POSSIBLE ASYNC
+
+        this.#code += `$$_html.push( $content());\n`;
+    }
+
+    _javascript_blocks( blocks )
+    {
+        for( let block of blocks )
+        {
+            let type = Object.keys( block )[0];
+
+            if( type === 'source' ){ continue }
+
+            this['_'+type]( block[type] );
+        }
+    }
+
+    _if( _if )
+    {
+        this._flush_html_source();
+
+        this.#code += `if( ${ _if.condition } )\n{\n`;
+
+        this._nodes( _if.if );
+
+        this._flush_html_source();
+
+        this.#code += `\n}\n`;
+
+        if( _if.else )
+        {
+            this.#code += `else\n{\n`;
+
+            if( _if.else.hasOwnProperty('condition') )
+            {
+                this._if( _if.else );
+            }
+            else
+            {
+                this._nodes( _if.else );
+            }
+
+            this._flush_html_source();
+
+            this.#code += `}\n`;
+        }
+    }
+
+    _for( _for )
+    {
+        if( _for.condition.includes( 'await' ))
+        {
+            this._async_code(
+            [
+                `for( ${ _for.condition } )`
+            ,   `{`
+            ]
+            ,       _for.for
+            ,   
+            [
+                `}`
+            ]);
+        }
+        else
+        {
+            this._flush_html_source();
+
+            this.#code += `for( ${ _for.condition } )\n{\n`;
+
+            console.log( _for.for );
+
+            this._nodes( _for.for );
+
+            this._flush_html_source();
+
+            this.#code += `\n}\n`;
+        }
+    }
+
+    _javascript( javascript )
+    {
+        //console.log( JSON.stringify( javascript, null, '  ' )); 
+        //process.exit()
+
+        if( javascript.if )
+        {
+            this._if( javascript.if );
+        }
+        else if( javascript.for )
+        {
+            this._for( javascript.for );
+        }
+        else{ process.exit() }
     }
 
     code()

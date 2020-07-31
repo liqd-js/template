@@ -1,5 +1,6 @@
 <div>
     Static3
+    { $content }
 </div>
 <div>
     { await new Promise( r => setTimeout(() => r('Static3'), 10 ) )}

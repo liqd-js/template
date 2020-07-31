@@ -3,9 +3,10 @@
 //https://www.javascriptstuff.com/how-whitespace-works-in-jsx/
 
 const Parser = require('@liqd-js/parser');
-const TemplateParser = new Parser( __dirname + '/template.syntax' );
+const TemplateParser = new Parser( __dirname + '/parser/template.syntax' );
 const Transpiler = require('./transpiler');
 
+const NO_CONTENT = () => '';
 const Q = JSON.stringify;
 
 module.exports = class Template
@@ -31,9 +32,9 @@ module.exports = class Template
 
         let code = transpiler.code();
 
-        console.log( '\n\n**** ' + filename + ' ****\n\n\n', code );
+        //console.log( '\n\n**** ' + filename + ' ****\n\n\n', code );
 
-        return new Function( '$args', 'const [ $id, $locale, $content, $props, $scope, $_template, $$_HTML ] = $args;' + code );
+        return new Function( '$args', 'const [ $id, $locale, $content, $props, $scope, $_template, $$_HTML ] = $args; ' + code );
     }
 
     get( name )
@@ -48,11 +49,11 @@ module.exports = class Template
         return template;
     }
 
-    render( name, props = {}, scope = {}, locale = 'en', content = '' )
+    render( name, props = {}, scope = {}, locale = 'en', content = NO_CONTENT )
     {
         let template = this.get( name );
 
-        return template([ Math.ceil( Math.random() * 1000 ), locale, content, props, scope, ( name, props, content ) => this.render( name, props, scope, locale, content ) ]);
+        return template([ Math.ceil( Math.random() * 1000 ), locale, content, props, scope, ( name, props, content ) => this.render( name, props, scope, locale, content || NO_CONTENT ) ]);
 
         return html;
     }

@@ -1,8 +1,7 @@
-<head>
+<head type={await "test"}>
     <meta charset="utf-8"/>
-    <meta charset="utf-8"/>
-    <meta charset="utf-8"/>
-    <meta charset="utf-8"/>
+    {$content}
+    *** POD *** {$id}
 </head>
 <div class="Static async" foo={$scope.foo}>
     Marienka

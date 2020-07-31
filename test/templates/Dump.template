@@ -1,5 +1,5 @@
-<div class="debug">
-    for( let prop in $props )
+<div class="dump">
+    for( let prop in $props.data )
     {
         <div class="property">
             {prop} = {$props[prop]}

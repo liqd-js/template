@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Super Page</title>
+    </head>
+    <body>
+        Ola et labora!
+        { $props.page }
+        for( let i = 0; i < 100; ++i )
+        {
+            <Debug {...$props} {...$scope}/>
+        }
+    </body>
+</html>

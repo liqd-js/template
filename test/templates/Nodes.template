@@ -19,8 +19,10 @@
 <div foo="bar" bar={$scope.foo + '_not_async_' + 1} foobar>
     <span>
         Janko Hrasko
-        <Static foo="bar" bar={$scope.foo}/>
-        <Static/>
+        <Static foo="bar" bar={await $scope.foo} {[fo*]...{fook:'janko hrasko', ...$scope}}/>
+        <Static>
+            Foo Bar
+        </Static>
     </span>
 </div>
 <!--Janko 

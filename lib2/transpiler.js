@@ -187,14 +187,56 @@ module.exports = class Transpiler
 
         this.#async = true; // POSSIBLE ASYNC
 
+        console.log({ template })
+
+        let content;
+
+        // TODO poriesit template content getter
+
         if( template.props.find( p => p.expression && p.expression.code.includes( 'await' )))
         {
-            // TODO - tu sme skoncili, treba spravit async kod pre vytvorenie props objektu a nasledne zavolat render
-
             this._async_render(
             [
-                `let v = ${attribute.expression.code};`
-            ,   `return v !== null ? ' ${attribute.name}' + ( v !== undefined ? '="' + v + '"' : '' ) : '';`
+                `let values = await Promise.all(`,
+            ,   `[`
+            ,   ...template.props.map( prop => 
+                {
+                    if( prop.hasOwnProperty( 'spread' ))
+                    {
+                        // TODO async expression
+                        return `    Object.entries( ${prop.spread} )${ this._filter( prop.filter )}.reduce(( props, [ name, value ]) => ( props[name] = value, props ), {}),`;
+                    }
+                    else if( prop.hasOwnProperty( 'expression' ))
+                    {
+                        if( prop.expression.code.includes( 'await' ))
+                        {
+                            return `    (async() => { return ${prop.expression.code}})(),`
+                        }
+                        else
+                        {
+                            return `    ${ prop.expression.code },`;
+                        }
+                    }
+                    else
+                    {
+                        return `    ${ prop.hasOwnProperty( 'value' ) ? JSON.stringify( prop.value ) : 'undefined' },`;
+                    }
+                })
+            ,   `]);`
+            ,   `let props = {`
+            ,   ...template.props.map(( prop, i ) =>  
+                {
+                    if( prop.hasOwnProperty( 'spread' ))
+                    {
+                        return `    ...values[${i}],`
+                    }
+                    else
+                    {
+                        return `    ${JSON.stringify( prop.name )} : values[${i}],`
+                    }
+                })
+            ,   `};`
+            ,   `return $_template( "${template.name}", props, "" );`
             ]);
         }
         else

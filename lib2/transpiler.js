@@ -1,5 +1,7 @@
 'use strict';
 
+const Style = require('@liqd-js/style');
+
 module.exports = class Transpiler
 {
     #code = 'let $$_html = [];\n\n'; #async = false; #html_source = '';
@@ -9,15 +11,37 @@ module.exports = class Transpiler
         this._nodes( template.nodes );
     }
 
+    _code( code, _async = false )
+    {
+        this._flush_html_source( _async );
+        this.#code += code;
+    }
+
+    _is_javascript_async( nodes )
+    {
+        for( let node of nodes )
+        {
+            if( node.hasOwnProperty( 'source' ))
+            {
+                if( node.source.includes( 'await' )){ return true }
+            }
+            else if( node.hasOwnProperty( 'blocks' ))
+            {
+                if( this._is_javascript_async( node.blocks )){ return true }
+            }
+        }
+
+        return false;
+    }
+
     _nodes( nodes )
     {
+        if( nodes )
         for( let node of nodes )
         {
             let type = Object.keys( node )[0];
 
-            if( type === 'source' ){ continue }
-
-            console.log({ type });
+            //console.log({ type });
 
             this['_'+type]( node[type] );
         }
@@ -25,19 +49,17 @@ module.exports = class Transpiler
 
     _async_render( code )
     {
-        this._flush_html_source( true );
-        
-        this.#code += 
+        this._code(
         [
             `$$_html.push(( async() =>`
         ,   `{`
         ,       ...( Array.isArray( code ) ? code : [ code ]).map( c => '    ' + c )
         ,   `})());\n`
         ]
-        .join('\n');
+        .join('\n'), true );
     }
 
-    _async_code( prefix, blocks, suffix = [] )
+    _async_code( nodes )
     {
         this._flush_html_source( true );
         
@@ -45,13 +67,7 @@ module.exports = class Transpiler
         [
             `$$_html.push(( async() =>`
         ,   `{`
-        ,       new Transpiler({ nodes: 
-                [
-                    ...prefix.map( c => ({ transpiled: '    ' + c + '\n' })),
-                    ...blocks,
-                    ...suffix.map( c => ({ transpiled: '    ' + c + '\n' }))
-                ]})
-                .code()
+        ,       new Transpiler({ nodes: nodes }).code()
         ,   `})());\n`
         ]
         .join('\n');
@@ -69,13 +85,6 @@ module.exports = class Transpiler
         _async && ( this.#async = true );
     }
 
-    _transpiled( transpiled )
-    {
-        this._flush_html_source();
-
-        this.#code += transpiled;
-    }
-
     _whitespace( whitespace )
     {
         this.#html_source += whitespace.includes('\n') ? '\n' : whitespace;
@@ -91,6 +100,20 @@ module.exports = class Transpiler
         {
             this.#html_source += `\${ ${expression.code.trim()} }`;
         }
+    }
+
+    _source( source )
+    {
+        this._flush_html_source();
+
+        this.#code += source;
+    }
+
+    _blocks( blocks )
+    {
+        this._code( '{\n' )
+        this._nodes( blocks );
+        this._code( '}\n' )
     }
     
     _text( text )
@@ -166,11 +189,11 @@ module.exports = class Transpiler
 
             this._attributes( style.attributes.filter( a => a.name !== 'instance' ));
 
-            this.#html_source += `>${style.source}</style>`;
+            this.#html_source += `>\n${Style.compile(style.source)}</style>`;
         }
         else
         {
-            console.log( style );
+            //console.log( style );
         }
     }
 
@@ -186,7 +209,7 @@ module.exports = class Transpiler
         }
         else
         {
-            console.log( script );
+            //console.log( script );
         }
     }
 
@@ -303,32 +326,36 @@ module.exports = class Transpiler
 
     _if( _if )
     {
-        this._flush_html_source();
-
-        this.#code += `if( ${ _if.condition } )\n{\n`;
-
-        this._nodes( _if.if );
-
-        this._flush_html_source();
-
-        this.#code += `\n}\n`;
-
-        if( _if.else )
+        if( _if.condition.includes( 'await' ) || this._is_javascript_async( _if.if ))
         {
-            this.#code += `else\n{\n`;
+            console.log( JSON.stringify( _if, null, '  ' ));
 
-            if( _if.else.hasOwnProperty('condition') )
+            this._async_code(
+            [
+                { source: `if( ${ _if.condition } )\n{\n` }
+            ,   { nodes: _if.if }
+            ,   { source: `\n}\n` }
+            ,   ...( _if.else ? 
+                [
+                    { source: `else\n{\n` }
+                ,   _if.else.hasOwnProperty('condition') ? ({ 'if': _if.else }) : ({ nodes: _if.else })
+                ,   { source: `\n}\n` }
+                ]
+                : [])
+            ]);
+        }
+        else
+        {
+            this._code( `if( ${ _if.condition } )\n{\n` );
+            this._nodes( _if.if );
+            this._code( `\n}\n` );
+
+            if( _if.else )
             {
-                this._if( _if.else );
+                this._code( `else\n{\n` );
+                this['_' + ( _if.else.hasOwnProperty('condition') ? 'if' : 'nodes' )]( _if.else );
+                this._code( `}\n` );
             }
-            else
-            {
-                this._nodes( _if.else );
-            }
-
-            this._flush_html_source();
-
-            this.#code += `}\n`;
         }
     }
 
@@ -338,28 +365,16 @@ module.exports = class Transpiler
         {
             this._async_code(
             [
-                `for( ${ _for.condition } )`
-            ,   `{`
-            ]
-            ,       _for.for
-            ,   
-            [
-                `}`
+                { source: `for( ${ _for.condition } )\n{\n` }
+            ,   { nodes: _for.for }
+            ,   { source: `\n}\n` }
             ]);
         }
         else
         {
-            this._flush_html_source();
-
-            this.#code += `for( ${ _for.condition } )\n{\n`;
-
-            console.log( _for.for );
-
+            this._code( `for( ${ _for.condition } )\n{\n` );
             this._nodes( _for.for );
-
-            this._flush_html_source();
-
-            this.#code += `\n}\n`;
+            this._code( `\n}\n` );
         }
     }
 
@@ -381,17 +396,15 @@ module.exports = class Transpiler
 
     code()
     {
+        // TODO poriesit aby sa dvaraz nevykonalo
+
         this._flush_html_source();
 
-        if( this.#async )
-        {
-            this.#code += `\nlet $$_async = $$_html.reduce(( a, p, i ) => ( typeof p !== 'string' && a.push( p.then( r => $$_html[i] = r )), a ), []);\n\n` +
-                `return $$_async.length ? Promise.all( $$_async ).then(() => $$_html.join('')) : $$_html.join('');`;
-        }
-        else
-        {
-            this.#code += `\nreturn $$_html.join('');`;
-        }
+        this._code( this.#async
+            ?   `\nlet $$_async = $$_html.reduce(( a, p, i ) => ( typeof p !== 'string' && a.push( p.then( r => $$_html[i] = r )), a ), []);\n\n` +
+                `return $$_async.length ? Promise.all( $$_async ).then(() => $$_html.join('')) : $$_html.join('');`
+            :   `\nreturn $$_html.join('');`
+        );
         
         return this.#code;
     }

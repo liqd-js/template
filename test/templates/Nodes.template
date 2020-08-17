@@ -3,10 +3,22 @@
     console.log('Toto tu je megasuperscript');
 </script>
 <style type="text/css" instance>
+
+    @no-touch
+    {
+        -moz-user-select:none;
+        user-select: none;
+    }
+
     html, body
     {
         margin: 0;
         padding: 0;
+
+        &.no-touch
+        {
+            @no-touch;
+        }
     }
 </style>
 <div foo="bar" bar={await $scope.foo + '_async_' + 5} foobar>
@@ -15,11 +27,19 @@
         <foo test={await '5'}/>
         <bar/>
     </span>
-    if( false && true && (() => { return 1 + ( 2 * 3 )})() )
+    if( await ( false && true && (() => { return 1 + ( 2 * 3 )})() ))
     {
-        <div>Foo ** TU MAM RIADNE SALENU VEC **</div>
+        let toto = 'super kod';
+
+        for( let i of toto )
+        {
+            if( i )
+            {
+                <div>Foo ** TU MAM RIADNE SALENU VEC **</div>
+            }
+        }
     }
-    else if( true )
+    else
     {
         <div>Bar *** SALENAKY!!! ***</div>
     }
@@ -53,8 +73,8 @@
 <div foo="bar" bar={await(async( p ) => { return $scope.foo + '_func_' + 1 + '_' + p })($scope.foo)} foobar={$scope.test}>
     <span>
         <span> A </span>  B <span>C {'prd'} </span>
-        /**/Janko /*Hrasko
-        aj*/ marienka
+        /** /Janko /*Hrasko
+        aj* / marienka
         { await(async(idecko) => $scope.foo + '_' + 42342 + '_' + idecko)($id) }
         //<div>Comment</div>
     </span>

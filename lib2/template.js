@@ -32,7 +32,7 @@ module.exports = class Template
 
         let code = transpiler.code();
 
-        //console.log( '\n\n**** ' + filename + ' ****\n\n\n', code );
+        console.log( '\n\n**** ' + filename + ' ****\n\n\n', code );
 
         return new Function( '$args', 'const [ $id, $locale, $content, $props, $scope, $_template, $$_HTML ] = $args; ' + code );
     }

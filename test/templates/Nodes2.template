@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<div>
+    <span>
+        Janko Hrasko
+    </span>
+    if( await false )
+    {
+        <div>Foo ** TU MAM RIADNE SALENU VEC **</div>
+    }
+    else
+    {
+        <div>Bar *** SALENAKY!!! ***</div>
+    }
+</div>

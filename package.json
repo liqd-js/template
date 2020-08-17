@@ -29,6 +29,7 @@
     "nyc": "^14.1.1"
   },
   "dependencies": {
-    "@liqd-js/parser": "0.0.5"
+    "@liqd-js/parser": "^1.0.0",
+    "@liqd-js/style": "^1.0.0"
   }
 }

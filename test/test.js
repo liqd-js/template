@@ -1,8 +1,8 @@
 'use strict';
 
-const Template = require('../lib2/template');
+const Template = require('../lib/template');
 
-const template = new Template();
+const template = new Template({ directories: [ __dirname + '/templates' ] });
 
 async function test( dump )
 {
@@ -21,7 +21,11 @@ async function test( dump )
     }
 }
 
-test().then(() => test(true));
+setTimeout(() =>
+{
+    test().then(() => test(true));
+}, 
+200 );
 /*test();
 test();
 test();

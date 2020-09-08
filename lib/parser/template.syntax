@@ -8,7 +8,7 @@
 	$ => Util.unescape( $.string )
 
 :expression_source
-    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]*>)|>))|[^{}"'`<\r\n]+)+/
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z]([/.]?[a-zA-Z0-9_-])*)([\s\n]+[a-zA-Z_]|[\s\n]*>)|>))|[^{}"'`<\r\n]+)+/
     "{" blocks=...:expression_source "}"
 
     $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
@@ -46,8 +46,8 @@
     "<" name=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws "/>"
 
 :template
-    "<" name=/[A-Z][a-zA-Z0-9_.-]*/ ?:ws props=?...[:ws]:attribute ?:ws ">" content=?...:node "</" $name ">"
-    "<" name=/[A-Z][a-zA-Z0-9_.-]*/ ?:ws props=?...[:ws]:attribute ?:ws "/>"
+    "<" name=/[A-Z]([/.]?[a-zA-Z0-9_-])*/ ?:ws props=?...[:ws]:attribute ?:ws ">" content=?...:node "</" $name ">"
+    "<" name=/[A-Z]([/.]?[a-zA-Z0-9_-])*/ ?:ws props=?...[:ws]:attribute ?:ws "/>"
 
 :text
     =/[^<{}\r\n]+?(?=[\s]*([<{}\r\n]|#\{|\/[/*]))/
@@ -65,7 +65,7 @@
 
 
 :javascript_source
-    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z][a-zA-Z0-9_.-]*)([\s\n]+[a-zA-Z_]|[\s\n]+\{|[\s\n]*\/?>)|>))|[^{}"'`<]+)+/
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|<(?!(([a-z#][a-z0-9_:-]*|[A-Z]([/.]?[a-zA-Z0-9_-])*)([\s\n]+[a-zA-Z_]|[\s\n]+\{|[\s\n]*\/?>)|>))|[^{}"'`<]+)+/
     =:tag
     =:template
     "{" blocks=?...:javascript_source "}"
@@ -81,6 +81,7 @@
 :javascript
     =:if
     =:for
+    "{" blocks=?...:javascript_source "}"
 
 :comment
     "//" /[^\n]*/
@@ -94,8 +95,8 @@
     =:tag
     =:template
     =:content
-    =:javascript
     =:expression
+    =:javascript
     =:htmlcomment
     =:comment
     =:text

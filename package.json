@@ -31,6 +31,7 @@
   "dependencies": {
     "@liqd-js/fs": "0.0.1",
     "@liqd-js/parser": "^1.0.0",
-    "@liqd-js/style": "^1.0.1"
+    "@liqd-js/style": "^1.0.2",
+    "@liqd-js/unique-id": "^1.0.1"
   }
 }

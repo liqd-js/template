@@ -25,6 +25,12 @@
     <span {[fo*]...{fook:'janko hrasko', ...$scope}}>
         Janko Hrasko
         <foo test={await '5'}/>
+        if( Math.random() < 0.5 )
+        {
+            <style instance>
+                body{ background: red; }
+            </style>
+        }
         <bar/>
     </span>
     if( await ( false && true && (() => { return 1 + ( 2 * 3 )})() ))

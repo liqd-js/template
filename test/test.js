@@ -9,7 +9,7 @@ async function test( dump )
     let start = process.hrtime();
 
     //let html = await template.render( '', 'Nodes', undefined, { foo: 'FOO', test: undefined });
-    let html = await template.render( '', 'Text', undefined, { foo: 'FOO', test: undefined });
+    let html = await template.render( '', 'Text', undefined, { foo: 'FOO', test: 'jano' });
 
     if( dump )
     {

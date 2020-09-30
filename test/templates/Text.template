@@ -1,1 +1,13 @@
-Janko hrasko
+Janko <span data={ $props.data } value={ $scope.test }>hrasko</span>
+
+if( true )
+{
+    <>
+        <div class="test">{'Test'}</div>
+    </>
+}
+<script>
+    console.log('janko\nhrasko');
+
+    console.log('ta\tco\rje');
+</script>

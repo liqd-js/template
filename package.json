@@ -1,7 +1,7 @@
 {
   "name": "@liqd-js/template",
   "description": "Templating engine",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": "radixxko",
   "license": "MIT",
   "main": "lib/template.js",

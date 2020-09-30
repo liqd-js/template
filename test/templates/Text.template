@@ -1,9 +1,9 @@
-Janko <span data={ $props.data } value={ $scope.test }>hrasko</span>
+Janko <span id={$id} data={ $props.data } {...$scope} value={ $scope.test }>hrasko</span>
 
 if( true )
 {
     <>
-        <div class="test">{'Test'}</div>
+        <div class="test">{'Test <> foo'}</div>
     </>
 }
 <script>

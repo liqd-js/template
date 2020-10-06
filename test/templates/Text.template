@@ -6,7 +6,10 @@ if( true )
         <div class="test">{'Test <> foo'}</div>
     </>
 }
-<script>
+<style>
+    html, body{ color: #ff0000 } body{ color: blue }
+</style>
+<script var-jozo={ $props.test } var-data={ $scope }>
     console.log('janko\nhrasko');
 
     console.log('ta\tco\rje');

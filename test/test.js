@@ -27,6 +27,19 @@ setTimeout(() =>
     test().then(() => test(true));
 }, 
 200 );
+
+setTimeout(() =>
+{
+    test().then(() => test(true));
+}, 
+1000 );
+
+setTimeout(() =>
+{
+    test().then(() => test(true));
+}, 
+1500 );
+
 /*test();
 test();
 test();

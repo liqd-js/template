@@ -7,7 +7,7 @@ if( true )
     </>
 }
 <style>
-    html, body{ color: #ff0000 } body{ color: blue }
+    html, body{ color: #ff0000; } body{ color: blue; }
 </style>
 <script var-jozo={ $props.test } var-data={ $scope }>
     console.log('janko\nhrasko');

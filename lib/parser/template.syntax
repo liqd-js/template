@@ -46,8 +46,14 @@
     "<" name=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws "/>"
 
 :template
-    "<" name=/[A-Z]([/.]?[a-zA-Z0-9_-])*/ ?:ws props=?...[:ws]:attribute ?:ws ">" content=?...:node "</" $name ">"
+    "<" name=/[A-Z]([/.]?[a-zA-Z0-9_-])*/ ?:ws props=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $name ">"
     "<" name=/[A-Z]([/.]?[a-zA-Z0-9_-])*/ ?:ws props=?...[:ws]:attribute ?:ws "/>"
+
+:dynamic_tag
+    "<{" name=...:expression_source "}" ?:ws props=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</>"
+    "<{" name=...:expression_source "}" ?:ws props=?...[:ws]:attribute ?:ws "/>"
+
+    $ => ( $.name = $.name.join(''), $ )
 
 :fragment
     "<>" nodes=?...:node "</>"
@@ -72,6 +78,7 @@
     =:script
     =:tag
     =:template
+    =:dynamic_tag
     =:fragment
     "{" blocks=?...:javascript_source "}"
 
@@ -99,6 +106,7 @@
     =:script
     =:tag
     =:template
+    =:dynamic_tag
     =:fragment
     =:content
     =:expression

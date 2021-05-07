@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<?xml?>
 <script type="text/javascript" foo={$scope.foo} instance>
     console.log('Toto tu je megasuperscript');
 </script>

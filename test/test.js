@@ -22,6 +22,9 @@ async function test( dump )
     }
 }
 
+test().then(() => test(true));
+
+/*
 setTimeout(() =>
 {
     test().then(() => test(true));
@@ -38,7 +41,7 @@ setTimeout(() =>
 {
     test().then(() => test(true));
 }, 
-1500 );
+1500 );*/
 
 /*test();
 test();

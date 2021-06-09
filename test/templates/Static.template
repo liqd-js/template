@@ -2,6 +2,10 @@
     <meta charset="utf-8"/>
     {$content}
     *** POD *** {$id}
+    if( $props.foo )
+    {
+        //$props.goo.foo.bar * 5
+    }
 </head>
 <div class="Static async" foo={$scope.foo}>
     Marienka

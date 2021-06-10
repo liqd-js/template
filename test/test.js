@@ -8,7 +8,8 @@ async function test( dump )
 {
     let start = process.hrtime();
 
-    let html = await template.render( 'Nodes', { scope: { foo: 'FOO', test: undefined }});
+    //let html = await template.render( 'Nodes', { scope: { foo: 'FOO', test: undefined }});
+    let html = await template.render( 'Reference' );
     //let html = await template.render( 'Text', { scope: { foo: 'FOO', test: ' jano je "fasa" ' }});
 
     if( dump )
@@ -22,7 +23,8 @@ async function test( dump )
     }
 }
 
-test().then(() => test(true));
+//test().then(() => test(true));
+test( true )
 
 /*
 setTimeout(() =>

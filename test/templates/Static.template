@@ -7,6 +7,10 @@
         //$props.goo.foo.bar * 5
     }
 </head>
+<@meta>
+    <span>Test Meta</span>
+    Textik
+</@meta>
 <div class="Static async" foo={$scope.foo}>
     Marienka
     toto //nebude

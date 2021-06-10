@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Janko</title>
+        <@meta/>
+    </head>
+    <body>
+        Hello
+        <@meta>
+            <meta charset="utf8" />
+        </@meta>
+        <span>
+            Ahoj
+            <@meta>
+                <meta author={ await 'Mrkvicka' } />
+            </@meta>
+        </span>
+    </body>
+</html>

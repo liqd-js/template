@@ -22,6 +22,7 @@
         }
     }
 </style>
+<@meta />
 <div foo="bar" bar={await $scope.foo + '_async_' + 5} foobar>
     <span {[fo*]...{fook:'janko hrasko', ...$scope}}>
         Janko Hrasko

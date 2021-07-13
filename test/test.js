@@ -20,6 +20,8 @@ async function test( dump )
 
         //console.log( html instanceof Promise ? await html : html );
         console.log('ZRENDEROVANE', ( end[0] * 1e3 + end[1] / 1e6 ).toFixed(2), html.length );
+
+        await template.generate_bundles();
     }
 }
 

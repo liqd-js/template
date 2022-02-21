@@ -13,6 +13,12 @@
 
     $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
 
+:multiline_expression_source
+    source=/(?:"(?:[^\\"\r\n]|\\[^\r\n])*?"|[\r\n]|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|\/(?!(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*)|<(?!((@[a-zA-Z][a-zA-Z0-9_:-]*|[a-z#][a-z0-9_:-]*|[A-Z]([\/.]?[a-zA-Z0-9_-])*)([\s\n]+[a-zA-Z_]|[\s\n]*>)|>))|[^{}"'`<\r\n\/]+)+/
+    "{" blocks=...:expression_source "}"
+
+    $ => $.hasOwnProperty( 'source' ) ? $.source : '\n{\n' + $.blocks.join('') + '\n}\n'
+
 :content
     "{" ?:ws "$content" ?:ws "}"
 
@@ -21,11 +27,16 @@
     
     $ => ({ escaped: Boolean( $.escaped ), code: $.source.join('') })
 
+:multiline_expression
+    escaped=?"#" "{" source=...:multiline_expression_source "}"
+    
+    $ => ({ escaped: Boolean( $.escaped ), code: $.source.join('') })
+
 :attribute
-	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" =:expression
+	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" expression=:multiline_expression
 	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/ "=" value=:string
 	name=/[a-zA-Z_][a-zA-Z0-9_:-]*/
-    escaped=?"#" "{" filter=?/\[(?<wildcards>[^\]]+)\]/ "..." spread=:expression_source "}"
+    escaped=?"#" "{" filter=?/\[(?<wildcards>[^\]]+)\]/ "..." spread=:multiline_expression_source "}"
 
     $ => ( !$.hasOwnProperty('expression') && !$.hasOwnProperty('value') && !$.hasOwnProperty('escaped') && ( $.value = null ), $ )
 

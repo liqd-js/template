@@ -1,0 +1,405 @@
+<style>
+.galerka
+{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+
+    img, .full-gallery
+    {
+        cursor: pointer;
+        object-fit: contain;
+    }
+
+    img
+    {
+        padding: var(--s-padding);
+    }
+
+    .full-gallery
+    {
+        margin: var(--s-padding);
+        width: 102px;
+        min-height: 69px;
+
+        div
+        {
+            display: flex;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            color: white;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            word-break: break-word;
+        }
+    }
+}
+
+#Gallery
+{
+    position:fixed;
+    display:flex;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    z-index: 999;
+    opacity: 0;
+    background: rgba(0,0,0,0.75);
+    transition: transform 125ms ease-out, opacity 125ms ease-out;
+    transform: translateY(0px);
+    align-items: center;
+    justify-content:center;
+    width: 100%;
+    user-select: none;
+
+    &.opened
+    {
+        opacity: 1;
+
+        #Gallery-close
+        {
+            top: 1%;
+        }
+
+        .gallery-box
+        {
+            transform: translateY(0);
+            opacity:1;
+        }
+
+        #triangle-left
+        {
+            left: 0;
+        }
+
+        #triangle-right
+        {
+            right:0;
+        }
+    }
+
+    .gallery-img
+    {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        overflow: hidden;
+        cursor: pointer;
+        transition: opacity 145ms ease-in-out;
+        max-width: 100%;
+        max-height: 100%;
+
+        @media phone
+        {
+            width: 100%!important;
+            height:100%!important;
+        }
+
+        img
+        {
+            cursor: pointer;
+
+            @media phone
+            {
+                width: auto;
+                height:auto;
+                max-width: 100%!important;
+                max-height: 100%!important;
+            }
+        }
+    }
+
+    #triangle-left, #triangle-right
+    {
+        position: absolute;
+        opacity: 0.5;
+        margin: 0 2vw;
+        z-index: 1;
+        cursor: pointer;
+        display: inline-block;
+        transition: all 250ms ease-in-out;
+        border-radius: 100%;
+        padding: 1.5vw;
+
+        @media phone
+        {
+            display: none;
+        }
+
+        &:hover
+        {
+            opacity: 1;
+        }
+
+        &.flaticon-next:before,
+        &.flaticon-back:before
+        {
+             width: 1.5vw;
+             height: 1.5vw;
+             left: 0;
+             top: 0;
+             right: 0;
+             margin: auto;
+             bottom: 0;
+             line-height: 3vw;
+             font-size: 3vw;
+             color: white;
+             font-weight: bold;
+        }
+    }
+
+    #triangle-right {right: -10vw;}
+    #triangle-left{left: -10vw;}
+
+    #Gallery-close
+    {
+        position: absolute;
+        top: 0;
+        right: 1%;
+        font-size: 3.5vw;
+        font-weight: bold;
+        text-align: center;
+        color: white;
+        opacity: 0.5;
+        padding: 0.7vw;
+        z-index: 1;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        text-shadow: 0px 0px 2px rgba(0,0,0,0.5);
+        transition: top 250ms ease-in-out, opacity 250ms ease-in-out;
+
+        @media phone
+        {
+            font-size: 10vw;
+            right: 1%!important;
+            padding:3vw!important;
+        }
+
+        &:before
+        {
+             content: '';
+             display: inline-block;
+             height: 100%;
+             vertical-align: middle;
+        }
+
+        &:hover,
+        &:focus
+        {
+            opacity: 1;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    }
+
+    .created,
+    .destroyed
+    {
+        opacity: 0;
+    }
+}
+
+.horizontal-scroll-arrows
+{
+    display: flex;
+
+    .arrow
+    {
+        color: #FFF;
+        font-size: 14px;
+        margin: 5px;
+        padding: 7px 10px;
+        background: #ab8b64;
+        display: inline-block;
+        cursor: pointer;
+        border-radius: 3px;
+        border: 0;
+
+        &:hover
+         {
+             background: #937863;
+             color: #FFF;
+             text-decoration: none;
+         }
+    }
+}
+</style>
+<script>
+    window.Gallery = function( element , images )
+    {
+        var opened_gallery = null;
+        element.gallery = this;
+
+        this.open = function( index )
+        {
+            var gallery = opened_gallery =
+                {
+                    images: images,
+                    index: (index || 0 ),
+                    element: document.createElement('div')
+                }
+            gallery.element.id = 'Gallery';
+            gallery.element.className = 'created';
+            gallery.element.innerHTML = '<div id="Gallery-close">&times;</div>';
+
+            if(images.length > 1) {
+                left = document.createElement('div');
+                left.setAttribute('id', 'triangle-left');
+                left.setAttribute('class', 'flaticon-back');
+                gallery.element.appendChild(left);
+                left.addEventListener('click', function (event) {
+                    event.stopPropagation(), show(gallery, '-1');
+                });
+
+                right = document.createElement('div');
+                right.setAttribute('id', 'triangle-right');
+                right.setAttribute('class', 'flaticon-next');
+                gallery.element.appendChild(right);
+                right.addEventListener('click', function (event) {
+                    event.stopPropagation(), show(gallery, '+1');
+                });
+            }
+            gallery.element.addEventListener( 'click', function( event ){ element.gallery.close(); event.stopPropagation(); return false; } );
+
+            show( gallery, gallery.index );
+            document.body.appendChild( gallery.element );
+            setTimeout( function(){ gallery.element.className = 'opened'; }, 45 );
+            document.addEventListener('keydown', onKeyDown, true);
+            gallery.element.addEventListener('wheel', onScroll, true);
+            gallery.element.addEventListener('mousewheel', onScroll, true);
+        }
+
+
+        function show( gallery, index )
+        {
+            var oldImage, newImage, direction = 'left';
+            if( typeof index === 'string' )
+            {
+                index = parseInt( index );
+
+                direction = ( index < 0 ? 'right' : 'left' );
+                gallery.index = ( gallery.index + gallery.images.length + index ) % gallery.images.length;
+
+            }
+            else if( index !== undefined )
+            {
+                direction = ( index != 0 && index < gallery.index ? 'right' : 'left' );
+                gallery.index = ( gallery.images.length + index ) % gallery.images.length;
+            }
+
+            if( ( oldImage = gallery.element.querySelector('.Gallery-img:not(.destroyed)') ) )
+            {
+                oldImage.className = 'Gallery-img destroyed ' + direction;
+                setTimeout( function(){ oldImage.parentElement.removeChild( oldImage ) }, 145 );
+            }
+
+
+            newImage = document.createElement('div');
+            newImage.className = 'Gallery-img created ' + direction;
+
+            gallery.element.appendChild( newImage );
+            setTimeout( function(){ newImage.className = newImage.className.replace('created','').trim() }, 145 );
+
+            image = document.createElement('img');
+            image.setAttribute('src' , gallery.images[gallery.index] );
+            image.style.maxHeight = (70 * window.innerHeight) / 100 + 'px';
+            image.style.maxWidth = "100%;"
+            newImage.appendChild ( image );
+            newImage.addEventListener( 'click', function( event ){ slide( gallery, event ); } );
+            newImage.addEventListener( 'touchstart', function( event ){ slide( gallery, event ); } );
+            newImage.addEventListener( 'touchend', function( event ){ slide( gallery, event ); } );
+        }
+
+        this.close = function()
+        {
+            if( opened_gallery )
+            {
+                document.removeEventListener('keydown', onKeyDown, true);
+                opened_gallery.element.removeEventListener('wheel', onScroll, true);
+                opened_gallery.element.removeEventListener('mousewheel', onScroll, true);
+                opened_gallery.element.className = 'destroyed';
+                setTimeout( function(){ document.body.removeChild( opened_gallery.element ); }, 142 );
+            }
+        }
+
+        var first_touch = {X: 0};
+
+        function slide( gallery, e ){
+            e.stopPropagation();
+            e.preventDefault();
+            if(e.type == 'touchstart'){ first_touch.X = e.touches[0].clientX; }
+            if(e.type == 'touchend')
+            {
+                if( first_touch.X > e.changedTouches[0].clientX ) {
+                    gallery.images.length > 1 ? show(gallery, '+1') : '';
+                }
+                else if(first_touch.X < e.changedTouches[0].clientX){
+                    gallery.images.length > 1 ? show(gallery, '-1') : '';
+                }
+            }
+            if(e.type == 'click'){ gallery.images.length > 1 ? show( gallery, e.clientX < window.innerWidth / 2 ? '-1' : '+1' ) : ''; }
+        }
+
+        function onScroll( event )
+        {
+            if (event.preventDefault) {
+                event.preventDefault();
+            } else {
+                event.returnValue = false;
+            }
+
+            try{ event.stopPropagation(); }catch(e){}
+            return false;
+        }
+
+        function onKeyDown( event )
+        {
+            if( opened_gallery )
+            {
+                if(images.length > 1)
+                {
+                    switch( event.keyCode )
+                    {
+                        case 27: element.gallery.close(); break;
+                        case 38: case 37: show( opened_gallery, '-1' ); break;
+                        case 13: case 32: case 39: case 40: show( opened_gallery, '+1' ); break;
+                    }
+                }
+                event.preventDefault();
+            }
+            else
+            {
+                document.removeEventListener('keydown', onKeyDown, true);
+            }
+        }
+
+    }
+</script>
+<div id="Modal-Gallery" class="galerka" style="margin-left: 0px">
+if( $props.gallery.length > 1 )
+{
+    for( let [ key, image ] of $props.thubnails )
+    {
+        if(key > 0 && key < 10)
+        {
+            <img itemprop="image" src={image} alt={name} title={name} onclick={'this.parentNode.gallery.open('+key+',event)'} />
+        }
+        if(thubnails.length > 6 && key + 1 == thubnails.length)
+        {
+            <div class="full-gallery" style={"background-image:url('" + image + "')" } onclick={'this.parentNode.gallery.open('+key+',event)'}><div>Celá galéria</div></div>
+        }
+    }
+}
+</div>
+<script var-GalleryID="Modal-Gallery" var-gallery={$props.gallery} var-thubnails={$props.thubnails} instance>
+    var imgs = gallery;
+    new window.Gallery( document.getElementById( GalleryID ), imgs);
+</script>

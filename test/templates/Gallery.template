@@ -1,0 +1,9 @@
+<style>galerkadisplay:
+ flex;</style>
+<script>
+    window.Gallery = function( element , images )
+    {
+        var opened_gallery = null;
+
+    }
+</script>

@@ -1,3 +1,243 @@
+
+<style>
+    .galerka
+{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+
+    img, .full-gallery
+    {
+        cursor: pointer;
+        object-fit: contain;
+    }
+
+    img
+    {
+        padding: var(--s-padding);
+    }
+
+    .full-gallery
+    {
+        margin: var(--s-padding);
+        width: 102px;
+        min-height: 69px;
+
+        div
+        {
+            display: flex;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            color: white;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            word-break: break-word;
+        }
+    }
+}
+
+#Gallery
+{
+    position:fixed;
+    display:flex;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    z-index: 999;
+    opacity: 0;
+    background: rgba(0,0,0,0.75);
+    transition: transform 125ms ease-out, opacity 125ms ease-out;
+    transform: translateY(0px);
+    align-items: center;
+    justify-content:center;
+    width: 100%;
+    user-select: none;
+
+    &.opened
+    {
+        opacity: 1;
+
+        #Gallery-close
+        {
+            top: 1%;
+        }
+
+        .gallery-box
+        {
+            transform: translateY(0);
+            opacity:1;
+        }
+
+        #triangle-left
+        {
+            left: 0;
+        }
+
+        #triangle-right
+        {
+            right:0;
+        }
+    }
+
+    .gallery-img
+    {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        overflow: hidden;
+        cursor: pointer;
+        transition: opacity 145ms ease-in-out;
+        max-width: 100%;
+        max-height: 100%;
+
+        @media phone
+        {
+            width: 100%!important;
+            height:100%!important;
+        }
+
+        img
+        {
+            cursor: pointer;
+
+            @media phone
+            {
+                width: auto;
+                height:auto;
+                max-width: 100%!important;
+                max-height: 100%!important;
+            }
+        }
+    }
+
+    #triangle-left, #triangle-right
+    {
+        position: absolute;
+        opacity: 0.5;
+        margin: 0 2vw;
+        z-index: 1;
+        cursor: pointer;
+        display: inline-block;
+        transition: all 250ms ease-in-out;
+        border-radius: 100%;
+        padding: 1.5vw;
+
+        @media phone
+        {
+            display: none;
+        }
+
+        &:hover
+        {
+            opacity: 1;
+        }
+
+        &.flaticon-next:before,
+        &.flaticon-back:before
+        {
+             width: 1.5vw;
+             height: 1.5vw;
+             left: 0;
+             top: 0;
+             right: 0;
+             margin: auto;
+             bottom: 0;
+             line-height: 3vw;
+             font-size: 3vw;
+             color: white;
+             font-weight: bold;
+        }
+    }
+
+    #triangle-right {right: -10vw;}
+    #triangle-left{left: -10vw;}
+
+    #Gallery-close
+    {
+        position: absolute;
+        top: 0;
+        right: 1%;
+        font-size: 3.5vw;
+        font-weight: bold;
+        text-align: center;
+        color: white;
+        opacity: 0.5;
+        padding: 0.7vw;
+        z-index: 1;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        text-shadow: 0px 0px 2px rgba(0,0,0,0.5);
+        transition: top 250ms ease-in-out, opacity 250ms ease-in-out;
+
+        @media phone
+        {
+            font-size: 10vw;
+            right: 1%!important;
+            padding:3vw!important;
+        }
+
+        &:before
+        {
+             content: '';
+             display: inline-block;
+             height: 100%;
+             vertical-align: middle;
+        }
+
+        &:hover,
+        &:focus
+        {
+            opacity: 1;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    }
+
+    .created,
+    .destroyed
+    {
+        opacity: 0;
+    }
+}
+
+.horizontal-scroll-arrows
+{
+    display: flex;
+
+    .arrow
+    {
+        color: #FFF;
+        font-size: 14px;
+        margin: 5px;
+        padding: 7px 10px;
+        background: #ab8b64;
+        display: inline-block;
+        cursor: pointer;
+        border-radius: 3px;
+        border: 0;
+
+        &:hover
+         {
+             background: #937863;
+             color: #FFF;
+             text-decoration: none;
+         }
+    }
+}
+</style>
+<script var-jozo={ $props.test } var-data={ $scope }>
+    console.log('janko\nhrasko');
+
+    console.log('ta\tco\rje');
+</script>
 Janko <span id={$id} data={ $props.data } {...$scope} value={ $scope.test }>hrasko</span>
 
 if( true )
@@ -6,11 +246,3 @@ if( true )
         <div class="test">{'Test <> foo'}</div>
     </>
 }
-<style>
-    html, body{ color: #ff0000; } body{ color: blue; }
-</style>
-<script var-jozo={ $props.test } var-data={ $scope }>
-    console.log('janko\nhrasko');
-
-    console.log('ta\tco\rje');
-</script>

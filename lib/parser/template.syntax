@@ -63,9 +63,15 @@
 :reference
     "<@" name=/[a-zA-Z][a-zA-Z0-9_:-]*/ ?:ws ">" nodes=?...:node "</@" $name ">"
 
+:slot
+    "<#" name=/[a-zA-Z][a-zA-Z0-9_:-]*/ ?:ws ">" nodes=?...:node "</#" $name ">"
+
 :tag
-    "<" name=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $name ">"
-    "<" name=/[a-z#][a-z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws "/>"
+    "<" name=/area|base|br|col|embed|hr|img|input|link|meta|source|track|wbr|command|keygen|param/ ?:ws attributes=?...[:ws]:attribute ?:ws /\/?>/
+    "<" name=/area|base|br|col|embed|hr|img|input|link|meta|source|track|wbr|command|keygen|param/ ?:ws attributes=?...[:ws]:attribute ?:ws ">" ?:ws "</" $name ">"
+    "<" name=/[a-z#][a-zA-Z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $name ">"
+    "<" name=/[a-z#][a-zA-Z0-9_:-]*/ ?:ws attributes=?...[:ws]:attribute ?:ws "/>"
+
 
 :template
     "<" name=/[A-Z]([/.]?[a-zA-Z0-9_-])*/ ?:ws props=?...[:ws]:attribute ?:ws ">" nodes=?...:node "</" $name ">"
@@ -81,7 +87,7 @@
     "<>" nodes=?...:node "</>"
 
 :text
-    =/[^<{}\r\n]+?(?=[\s]*([<{}\r\n]|#\{|\/[/*]|$))/
+    =/[^<{}\r\n]+?(?=[\s]*([<{}\r\n]|#\{|(?<=\s)\/[/*]|$))/
 
 :parenthesis
     source=/("(?:[^\\"\r\n]|\\[^\r\n])*?"|'(?:[^\\'\r\n]|\\[^\r\n])*?'|`(?:[^\\`]|\\.)*?`|\/(?:(?![*+?])(?:[^\r\n\[\/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/[gmi]*|[^()"'`]+)+/

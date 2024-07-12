@@ -238,6 +238,7 @@
 
     console.log('ta\tco\rje');
 </script>
+<meta type="text">
 Janko <span id={$id} data={ $props.data } {...$scope} value={ $scope.test }>hrasko</span>
 
 if( true )
